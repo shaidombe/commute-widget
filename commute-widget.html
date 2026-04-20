@@ -175,10 +175,16 @@
 
     const widget = document.getElementById('widget');
 
-    function getActiveWindow() {
+    function getIsraelTime() {
+      // תמיד משתמש בשעון של ישראל, לא של המכשיר
       const now = new Date();
-      const day = now.getDay();
-      const hour = now.getHours();
+      const israelString = now.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' });
+      const israelDate = new Date(israelString);
+      return { day: israelDate.getDay(), hour: israelDate.getHours() };
+    }
+
+    function getActiveWindow() {
+      const { day, hour } = getIsraelTime();
       if (!ACTIVE_DAYS.includes(day)) return { active: false, direction: null };
       if (hour >= MORNING_START && hour < MORNING_END) return { active: true, direction: 'to_office' };
       if (hour >= EVENING_START && hour < EVENING_END) return { active: true, direction: 'to_home' };
@@ -202,9 +208,7 @@
     }
 
     function getNextActiveTime() {
-      const now = new Date();
-      const hour = now.getHours();
-      const day = now.getDay();
+      const { day, hour } = getIsraelTime();
       if (ACTIVE_DAYS.includes(day)) {
         if (hour < MORNING_START) return `היום ב-${MORNING_START}:00`;
         if (hour >= MORNING_END && hour < EVENING_START) return `היום ב-${EVENING_START}:00`;
@@ -272,7 +276,7 @@
       if (PROXY_URL.includes('PASTE_YOUR_SCRIPT_URL_HERE')) return;
 
       const win = getActiveWindow();
-      const direction = win.direction || (new Date().getHours() < 13 ? 'to_office' : 'to_home');
+      const direction = win.direction || (getIsraelTime().hour < 13 ? 'to_office' : 'to_home');
 
       try {
         const response = await fetch(`${PROXY_URL}?dir=${direction}`);
