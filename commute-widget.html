@@ -383,12 +383,20 @@
       else renderSleeping();
     }
 
-    // רענון תצוגת הזמן כל 20 שניות - בלי קריאה ל-API
+    // רענון תצוגת הזמן כל שנייה - בלי קריאה ל-API
     function refreshTimestampOnly() {
       if (!lastRenderedData) return;
+
+      // עדכן את הקאונטר "עודכן לפני X"
       const updatedSpan = document.querySelector('.updated span');
       if (updatedSpan) {
         updatedSpan.textContent = formatTimeAgo(lastRenderedData.lastUpdate);
+      }
+
+      // עדכן את שעת ההגעה - חישוב דינמי: השעה הנוכחית + זמן הנסיעה האחרון הידוע
+      const arrivalEl = document.querySelector('.arrival');
+      if (arrivalEl) {
+        arrivalEl.textContent = formatArrivalTime(lastRenderedData.minutes);
       }
     }
 
