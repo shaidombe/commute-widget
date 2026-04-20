@@ -19,25 +19,27 @@
     }
 
     .widget {
-      background: rgba(30, 30, 50, 0.6);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 20px 24px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      background: rgba(20, 25, 45, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 22px 26px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
       width: 100%;
-      max-width: 500px;
+      max-width: 560px;
     }
 
-    .row {
+    /* Top section - main info */
+    .main-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 20px;
     }
 
-    .left {
+    /* Left: route info with status dot */
+    .route-section {
       display: flex;
       align-items: center;
       gap: 14px;
@@ -54,100 +56,118 @@
       transition: all 0.5s ease;
     }
 
-    .traffic-dot.green { background: #22c55e; box-shadow: 0 0 12px rgba(34, 197, 94, 0.8); }
-    .traffic-dot.orange { background: #f97316; box-shadow: 0 0 12px rgba(249, 115, 22, 0.8); }
-    .traffic-dot.red { background: #ef4444; box-shadow: 0 0 12px rgba(239, 68, 68, 0.8); }
+    .traffic-dot.green { background: #22c55e; box-shadow: 0 0 14px rgba(34, 197, 94, 0.9); }
+    .traffic-dot.orange { background: #f97316; box-shadow: 0 0 14px rgba(249, 115, 22, 0.9); }
+    .traffic-dot.red { background: #ef4444; box-shadow: 0 0 14px rgba(239, 68, 68, 0.9); }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.6; transform: scale(1.15); }
     }
 
-    .route-info {
+    .route-text {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 4px;
       min-width: 0;
     }
 
     .route {
-      font-size: 15px;
-      color: #cbd5e1;
+      font-size: 16px;
+      color: #e2e8f0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-weight: 500;
     }
 
-    .route strong { color: #f1f5f9; font-weight: 600; }
+    .route strong { color: #ffffff; font-weight: 700; }
 
     .via {
-      font-size: 11px;
+      font-size: 12px;
       color: #94a3b8;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-weight: 400;
     }
 
-    .via .via-icon { margin-left: 3px; opacity: 0.7; }
+    .via .via-icon {
+      margin-left: 4px;
+      font-size: 11px;
+      opacity: 0.7;
+    }
 
-    .right-side {
+    /* Right: time info */
+    .time-section {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 4px;
-    }
-
-    .time {
-      font-size: 26px;
-      font-weight: 600;
-      font-family: 'SF Mono', 'Courier New', monospace;
-      transition: color 0.5s ease;
-      white-space: nowrap;
+      gap: 0;
       line-height: 1;
-      opacity: 0.85;
     }
-
-    .time.green { color: #22c55e; }
-    .time.orange { color: #f97316; }
-    .time.red { color: #ef4444; }
-
-    .time .unit { font-size: 14px; font-weight: 400; opacity: 0.7; margin-right: 3px; }
 
     .arrival {
-      font-size: 42px;
-      font-weight: 800;
+      font-size: 36px;
+      font-weight: 700;
       font-family: 'SF Mono', 'Courier New', monospace;
-      color: #f1f5f9;
-      white-space: nowrap;
-      line-height: 1;
       letter-spacing: -1px;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      line-height: 1;
+      transition: color 0.5s ease;
     }
 
-    .arrival .arrival-label {
-      font-size: 13px;
-      font-weight: 500;
+    .arrival.green { color: #22c55e; }
+    .arrival.orange { color: #f97316; }
+    .arrival.red { color: #ef4444; }
+
+    .duration-line {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .arrival-label {
+      font-size: 11px;
       color: #94a3b8;
-      margin-left: 6px;
-      letter-spacing: 0;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
+    .duration {
+      font-size: 13px;
+      color: #cbd5e1;
+      font-weight: 500;
+      font-family: 'SF Mono', 'Courier New', monospace;
+    }
+
+    /* Footer */
     .footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 12px;
-      padding-top: 10px;
+      margin-top: 14px;
+      padding-top: 12px;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       font-size: 12px;
-      color: #94a3b8;
     }
 
-    .delay-info { font-weight: 600; color: #f97316; }
+    .delay-info {
+      font-weight: 600;
+      color: #f97316;
+    }
     .delay-info.clear { color: #22c55e; }
+    .delay-info.heavy { color: #ef4444; }
     .delay-info.sleeping { color: #94a3b8; font-weight: 400; }
 
-    .updated { display: flex; align-items: center; gap: 6px; }
+    .updated {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #94a3b8;
+      font-weight: 400;
+    }
 
     .live-dot {
       width: 6px;
@@ -159,6 +179,17 @@
 
     .live-dot.sleeping { background: #64748b; animation: none; }
 
+    /* Sleeping state */
+    .sleeping-state {
+      text-align: center;
+      padding: 8px 0;
+    }
+
+    .sleeping-state .icon { font-size: 28px; margin-bottom: 8px; }
+    .sleeping-state .msg { font-size: 15px; color: #cbd5e1; font-weight: 500; }
+    .sleeping-state .next { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+
+    /* Error / loading */
     .error {
       color: #f97316;
       font-size: 13px;
@@ -171,19 +202,8 @@
       padding: 15px;
       text-align: center;
       font-size: 13px;
-      line-height: 1.7;
       color: #cbd5e1;
     }
-
-    .sleeping-state {
-      text-align: center;
-      padding: 10px 0;
-      color: #cbd5e1;
-      font-size: 15px;
-    }
-
-    .sleeping-state .icon { font-size: 28px; margin-bottom: 6px; }
-    .sleeping-state .next { font-size: 12px; color: #94a3b8; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -204,6 +224,8 @@
     // ============================================
 
     const widget = document.getElementById('widget');
+    let lastFetchTime = null;
+    let lastRenderedData = null;
 
     function getIsraelTime() {
       const now = new Date();
@@ -229,15 +251,19 @@
 
     function formatTimeAgo(date) {
       const seconds = Math.floor((new Date() - date) / 1000);
-      if (seconds < 30) return 'עכשיו';
+      if (seconds < 5) return 'עודכן כעת';
       if (seconds < 60) return `לפני ${seconds} שניות`;
       const mins = Math.floor(seconds / 60);
       if (mins === 1) return 'לפני דקה';
-      return `לפני ${mins} דק'`;
+      if (mins < 60) return `לפני ${mins} דק'`;
+      const hours = Math.floor(mins / 60);
+      const remainingMins = mins % 60;
+      if (hours === 1 && remainingMins === 0) return 'לפני שעה';
+      if (remainingMins === 0) return `לפני ${hours} שעות`;
+      return `לפני ${hours}:${String(remainingMins).padStart(2, '0')} שעות`;
     }
 
     function formatArrivalTime(minutesFromNow) {
-      // חישוב שעת הגעה לפי שעון ישראל
       const israel = getIsraelTime();
       const arrival = new Date(israel.date.getTime() + minutesFromNow * 60 * 1000);
       const hh = String(arrival.getHours()).padStart(2, '0');
@@ -261,7 +287,7 @@
       widget.innerHTML = `
         <div class="sleeping-state">
           <div class="icon">😴</div>
-          <div>מחוץ לשעות נסיעה</div>
+          <div class="msg">מחוץ לשעות נסיעה</div>
           <div class="next">מתחדש: ${getNextActiveTime()}</div>
         </div>
         <div class="footer">
@@ -279,13 +305,14 @@
     }
 
     function renderData(data) {
+      lastRenderedData = data;
       const { minutes, minutesNoTraffic, level, lastUpdate, direction, routeSummary } = data;
       const delay = minutes - minutesNoTraffic;
 
       let delayText, delayClass = '';
       if (delay <= 2) { delayText = '🟢 זורם'; delayClass = 'clear'; }
       else if (delay <= 8) delayText = `🟠 +${delay} דק' מהרגיל`;
-      else delayText = `🔴 +${delay} דק' מהרגיל`;
+      else { delayText = `🔴 +${delay} דק' מהרגיל`; delayClass = 'heavy'; }
 
       const fromTo = direction === 'to_office'
         ? '<strong>הבית</strong> ← <strong>סלסטור</strong>'
@@ -297,26 +324,27 @@
         : '';
 
       widget.innerHTML = `
-        <div class="row">
-          <div class="left">
+        <div class="main-row">
+          <div class="route-section">
             <div class="traffic-dot ${level}"></div>
-            <div class="route-info">
+            <div class="route-text">
               <div class="route">${fromTo}</div>
               ${viaLine}
             </div>
           </div>
-          <div class="right-side">
-            <div class="arrival"><span class="arrival-label">הגעה</span>${arrivalTime}</div>
-            <div class="time ${level}">
-              ${minutes}<span class="unit">דק'</span>
+          <div class="time-section">
+            <div class="arrival ${level}">${arrivalTime}</div>
+            <div class="duration-line">
+              <span class="arrival-label">הגעה</span>
+              <span class="duration">· ${minutes} דק' נסיעה</span>
             </div>
           </div>
         </div>
         <div class="footer">
-          <div class="${delayClass === 'clear' ? 'delay-info clear' : 'delay-info'}">${delayText}</div>
+          <div class="delay-info ${delayClass}">${delayText}</div>
           <div class="updated">
             <div class="live-dot"></div>
-            <span>עודכן ${formatTimeAgo(lastUpdate)}</span>
+            <span>${formatTimeAgo(lastUpdate)}</span>
           </div>
         </div>
       `;
@@ -355,9 +383,19 @@
       else renderSleeping();
     }
 
+    // רענון תצוגת הזמן כל 20 שניות - בלי קריאה ל-API
+    function refreshTimestampOnly() {
+      if (!lastRenderedData) return;
+      const updatedSpan = document.querySelector('.updated span');
+      if (updatedSpan) {
+        updatedSpan.textContent = formatTimeAgo(lastRenderedData.lastUpdate);
+      }
+    }
+
     if (!PROXY_URL.includes('PASTE_YOUR_SCRIPT_URL_HERE')) {
       tick();
       setInterval(tick, REFRESH_INTERVAL_MS);
+      setInterval(refreshTimestampOnly, 1000); // רענון הקאונטר החי כל שנייה
     }
   </script>
 </body>
