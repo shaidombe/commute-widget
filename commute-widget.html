@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>זמן נסיעה למשרד</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
+      background: transparent;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .widget {
+      background: rgba(30, 30, 50, 0.6);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .traffic-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse 2s infinite;
+      transition: all 0.5s ease;
+    }
+
+    .traffic-dot.green { background: #22c55e; box-shadow: 0 0 12px rgba(34, 197, 94, 0.8); }
+    .traffic-dot.orange { background: #f97316; box-shadow: 0 0 12px rgba(249, 115, 22, 0.8); }
+    .traffic-dot.red { background: #ef4444; box-shadow: 0 0 12px rgba(239, 68, 68, 0.8); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.15); }
+    }
+
+    .route {
+      font-size: 15px;
+      color: #cbd5e1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .route strong { color: #f1f5f9; font-weight: 600; }
+
+    .time {
+      font-size: 36px;
+      font-weight: 700;
+      font-family: 'SF Mono', 'Courier New', monospace;
+      transition: color 0.5s ease;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .time.green { color: #22c55e; }
+    .time.orange { color: #f97316; }
+    .time.red { color: #ef4444; }
+
+    .time .unit { font-size: 16px; font-weight: 400; opacity: 0.7; margin-right: 4px; }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .delay-info { font-weight: 600; color: #f97316; }
+    .delay-info.clear { color: #22c55e; }
+    .delay-info.sleeping { color: #94a3b8; font-weight: 400; }
+
+    .updated { display: flex; align-items: center; gap: 6px; }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s infinite;
+    }
+
+    .live-dot.sleeping { background: #64748b; animation: none; }
+
+    .error {
+      color: #f97316;
+      font-size: 13px;
+      padding: 20px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .setup {
+      padding: 15px;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #cbd5e1;
+    }
+
+    .setup code {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #64ffda;
+      word-break: break-all;
+    }
+
+    .sleeping-state {
+      text-align: center;
+      padding: 10px 0;
+      color: #cbd5e1;
+      font-size: 15px;
+    }
+
+    .sleeping-state .icon { font-size: 28px; margin-bottom: 6px; }
+    .sleeping-state .next { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="widget" id="widget">
+    <div class="setup">
+      ⏳ טוען נתונים...
+    </div>
+  </div>
+
+  <script>
+    // ============================================
+    // הגדרות - רק דבר אחד להחליף כאן!
+    // ============================================
+    const PROXY_URL = "https://script.google.com/macros/s/AKfycbxYuqebSJ-QhU_Hn7upQ0icNyJ8z7haWJHqeojYHELHR2yCNiX86Gc9oLT7nncdP9Vj/exec";
+
+    // הגדרות רענון חכם
+    const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 דקות
+    const MORNING_START = 6;
+    const MORNING_END = 11;
+    const EVENING_START = 15;
+    const EVENING_END = 21;
+    const ACTIVE_DAYS = [0, 1, 2, 3, 4]; // א'-ה' בישראל
+    // ============================================
+
+    const widget = document.getElementById('widget');
+
+    function getActiveWindow() {
+      const now = new Date();
+      const day = now.getDay();
+      const hour = now.getHours();
+      if (!ACTIVE_DAYS.includes(day)) return { active: false, direction: null };
+      if (hour >= MORNING_START && hour < MORNING_END) return { active: true, direction: 'to_office' };
+      if (hour >= EVENING_START && hour < EVENING_END) return { active: true, direction: 'to_home' };
+      return { active: false, direction: null };
+    }
+
+    function getTrafficLevel(durationSec, durationInTrafficSec) {
+      const ratio = durationInTrafficSec / durationSec;
+      if (ratio < 1.15) return 'green';
+      if (ratio < 1.4) return 'orange';
+      return 'red';
+    }
+
+    function formatTimeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000);
+      if (seconds < 30) return 'עכשיו';
+      if (seconds < 60) return `לפני ${seconds} שניות`;
+      const mins = Math.floor(seconds / 60);
+      if (mins === 1) return 'לפני דקה';
+      return `לפני ${mins} דק'`;
+    }
+
+    function getNextActiveTime() {
+      const now = new Date();
+      const hour = now.getHours();
+      const day = now.getDay();
+      if (ACTIVE_DAYS.includes(day)) {
+        if (hour < MORNING_START) return `היום ב-${MORNING_START}:00`;
+        if (hour >= MORNING_END && hour < EVENING_START) return `היום ב-${EVENING_START}:00`;
+      }
+      let daysUntilActive = 1;
+      while (!ACTIVE_DAYS.includes((day + daysUntilActive) % 7)) daysUntilActive++;
+      const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+      return `${dayNames[(day + daysUntilActive) % 7]} ב-${MORNING_START}:00`;
+    }
+
+    function renderSleeping() {
+      widget.innerHTML = `
+        <div class="sleeping-state">
+          <div class="icon">😴</div>
+          <div>מחוץ לשעות נסיעה</div>
+          <div class="next">מתחדש: ${getNextActiveTime()}</div>
+        </div>
+        <div class="footer">
+          <div class="delay-info sleeping">מצב חיסכון</div>
+          <div class="updated">
+            <div class="live-dot sleeping"></div>
+            <span>חוסך קריאות</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderError(message) {
+      widget.innerHTML = `<div class="error">⚠️ ${message}</div>`;
+    }
+
+    function renderData(data) {
+      const { minutes, minutesNoTraffic, level, lastUpdate, direction } = data;
+      const delay = minutes - minutesNoTraffic;
+      let delayText, delayClass = '';
+      if (delay <= 2) { delayText = '🟢 זורם'; delayClass = 'clear'; }
+      else if (delay <= 8) delayText = `🟠 +${delay} דק' מהרגיל`;
+      else delayText = `🔴 +${delay} דק' מהרגיל`;
+
+      const fromTo = direction === 'to_office'
+        ? '<strong>הבית</strong> ← <strong>סלסטור</strong>'
+        : '<strong>סלסטור</strong> ← <strong>הבית</strong>';
+
+      widget.innerHTML = `
+        <div class="row">
+          <div class="left">
+            <div class="traffic-dot ${level}"></div>
+            <div class="route">${fromTo}</div>
+          </div>
+          <div class="time ${level}">
+            ${minutes}<span class="unit">דק'</span>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="${delayClass === 'clear' ? 'delay-info clear' : 'delay-info'}">${delayText}</div>
+          <div class="updated">
+            <div class="live-dot"></div>
+            <span>עודכן ${formatTimeAgo(lastUpdate)}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    async function fetchCommute() {
+      if (PROXY_URL.includes('PASTE_YOUR_SCRIPT_URL_HERE')) return;
+
+      const win = getActiveWindow();
+      const direction = win.direction || (new Date().getHours() < 13 ? 'to_office' : 'to_home');
+
+      try {
+        const response = await fetch(`${PROXY_URL}?dir=${direction}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+
+        if (data.error) { renderError(data.error); return; }
+
+        renderData({
+          minutes: data.minutes,
+          minutesNoTraffic: data.minutesNoTraffic,
+          level: getTrafficLevel(data.durationSec, data.durationInTrafficSec),
+          lastUpdate: new Date(),
+          direction: data.direction
+        });
+      } catch (err) {
+        console.error(err);
+        renderError('לא ניתן להתחבר לשרת: ' + err.message);
+      }
+    }
+
+    function tick() {
+      const win = getActiveWindow();
+      if (win.active) fetchCommute();
+      else renderSleeping();
+    }
+
+    if (!PROXY_URL.includes('PASTE_YOUR_SCRIPT_URL_HERE')) {
+      tick();
+      setInterval(tick, REFRESH_INTERVAL_MS);
+    }
+  </script>
+</body>
+</html>
