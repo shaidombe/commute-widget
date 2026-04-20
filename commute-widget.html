@@ -63,6 +63,13 @@
       50% { opacity: 0.6; transform: scale(1.15); }
     }
 
+    .route-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
     .route {
       font-size: 15px;
       color: #cbd5e1;
@@ -72,6 +79,23 @@
     }
 
     .route strong { color: #f1f5f9; font-weight: 600; }
+
+    .via {
+      font-size: 11px;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .via .via-icon { margin-left: 3px; opacity: 0.7; }
+
+    .right-side {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
 
     .time {
       font-size: 36px;
@@ -87,6 +111,15 @@
     .time.red { color: #ef4444; }
 
     .time .unit { font-size: 16px; font-weight: 400; opacity: 0.7; margin-right: 4px; }
+
+    .arrival {
+      font-size: 12px;
+      color: #94a3b8;
+      white-space: nowrap;
+      font-family: 'SF Mono', 'Courier New', monospace;
+    }
+
+    .arrival .arrival-label { opacity: 0.7; margin-left: 3px; }
 
     .footer {
       display: flex;
@@ -131,15 +164,6 @@
       color: #cbd5e1;
     }
 
-    .setup code {
-      background: rgba(0, 0, 0, 0.4);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 11px;
-      color: #64ffda;
-      word-break: break-all;
-    }
-
     .sleeping-state {
       text-align: center;
       padding: 10px 0;
@@ -153,34 +177,28 @@
 </head>
 <body>
   <div class="widget" id="widget">
-    <div class="setup">
-      ⏳ טוען נתונים...
-    </div>
+    <div class="setup">⏳ טוען נתונים...</div>
   </div>
 
   <script>
     // ============================================
-    // הגדרות - רק דבר אחד להחליף כאן!
-    // ============================================
     const PROXY_URL = "https://script.google.com/macros/s/AKfycbxYuqebSJ-QhU_Hn7upQ0icNyJ8z7haWJHqeojYHELHR2yCNiX86Gc9oLT7nncdP9Vj/exec";
 
-    // הגדרות רענון חכם
-    const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 דקות
+    const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
     const MORNING_START = 6;
     const MORNING_END = 11;
     const EVENING_START = 15;
     const EVENING_END = 21;
-    const ACTIVE_DAYS = [0, 1, 2, 3, 4]; // א'-ה' בישראל
+    const ACTIVE_DAYS = [0, 1, 2, 3, 4];
     // ============================================
 
     const widget = document.getElementById('widget');
 
     function getIsraelTime() {
-      // תמיד משתמש בשעון של ישראל, לא של המכשיר
       const now = new Date();
       const israelString = now.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' });
       const israelDate = new Date(israelString);
-      return { day: israelDate.getDay(), hour: israelDate.getHours() };
+      return { day: israelDate.getDay(), hour: israelDate.getHours(), date: israelDate };
     }
 
     function getActiveWindow() {
@@ -205,6 +223,15 @@
       const mins = Math.floor(seconds / 60);
       if (mins === 1) return 'לפני דקה';
       return `לפני ${mins} דק'`;
+    }
+
+    function formatArrivalTime(minutesFromNow) {
+      // חישוב שעת הגעה לפי שעון ישראל
+      const israel = getIsraelTime();
+      const arrival = new Date(israel.date.getTime() + minutesFromNow * 60 * 1000);
+      const hh = String(arrival.getHours()).padStart(2, '0');
+      const mm = String(arrival.getMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
     }
 
     function getNextActiveTime() {
@@ -241,8 +268,9 @@
     }
 
     function renderData(data) {
-      const { minutes, minutesNoTraffic, level, lastUpdate, direction } = data;
+      const { minutes, minutesNoTraffic, level, lastUpdate, direction, routeSummary } = data;
       const delay = minutes - minutesNoTraffic;
+
       let delayText, delayClass = '';
       if (delay <= 2) { delayText = '🟢 זורם'; delayClass = 'clear'; }
       else if (delay <= 8) delayText = `🟠 +${delay} דק' מהרגיל`;
@@ -252,14 +280,25 @@
         ? '<strong>הבית</strong> ← <strong>סלסטור</strong>'
         : '<strong>סלסטור</strong> ← <strong>הבית</strong>';
 
+      const arrivalTime = formatArrivalTime(minutes);
+      const viaLine = routeSummary
+        ? `<div class="via"><span class="via-icon">🛣️</span>דרך ${routeSummary}</div>`
+        : '';
+
       widget.innerHTML = `
         <div class="row">
           <div class="left">
             <div class="traffic-dot ${level}"></div>
-            <div class="route">${fromTo}</div>
+            <div class="route-info">
+              <div class="route">${fromTo}</div>
+              ${viaLine}
+            </div>
           </div>
-          <div class="time ${level}">
-            ${minutes}<span class="unit">דק'</span>
+          <div class="right-side">
+            <div class="time ${level}">
+              ${minutes}<span class="unit">דק'</span>
+            </div>
+            <div class="arrival"><span class="arrival-label">הגעה:</span>${arrivalTime}</div>
           </div>
         </div>
         <div class="footer">
@@ -290,7 +329,8 @@
           minutesNoTraffic: data.minutesNoTraffic,
           level: getTrafficLevel(data.durationSec, data.durationInTrafficSec),
           lastUpdate: new Date(),
-          direction: data.direction
+          direction: data.direction,
+          routeSummary: data.routeSummary
         });
       } catch (err) {
         console.error(err);
